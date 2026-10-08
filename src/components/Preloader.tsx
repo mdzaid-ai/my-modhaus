@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { sound } from '../utils/audio';
+import { ArrowDown } from 'lucide-react';
 
 interface PreloaderProps {
   onComplete: () => void;
@@ -9,17 +10,17 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
   const [progress, setProgress] = useState(0);
   const [phase, setPhase] = useState<'drawing' | 'collapsing' | 'logo' | 'flythrough' | 'done'>('drawing');
   const [stageName, setStageName] = useState('LAND');
+  const [logoReady, setLogoReady] = useState(false);
   const requestRef = useRef<number>();
 
   useEffect(() => {
     let current = 0;
     const startTime = performance.now();
-    const duration = 2800; // 2.8s smooth architectural sequence
+    const duration = 2600; // Calm architectural drawing
 
     const tick = (now: number) => {
       const elapsed = now - startTime;
       const rawProgress = Math.min(elapsed / duration, 1);
-      // Smooth architectural cubic easing
       current = Math.floor(rawProgress * 100);
       setProgress(current);
 
@@ -32,19 +33,18 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
       if (rawProgress < 1) {
         requestRef.current = requestAnimationFrame(tick);
       } else {
-        // Trigger collapse into logo
+        // Collapse into logo
         setPhase('collapsing');
         sound.playStructuralRumble();
+
         setTimeout(() => {
           setPhase('logo');
           sound.playWarmChime();
+
+          // Reveal sub-branding with calm architectural pacing
           setTimeout(() => {
-            setPhase('flythrough');
-            setTimeout(() => {
-              setPhase('done');
-              onComplete();
-            }, 800);
-          }, 1100);
+            setLogoReady(true);
+          }, 400);
         }, 500);
       }
     };
@@ -53,7 +53,43 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
-  }, [onComplete]);
+  }, []);
+
+  const handleEnterExperience = () => {
+    if (phase !== 'logo') return;
+    sound.playClick(1000);
+    setPhase('flythrough');
+    setTimeout(() => {
+      setPhase('done');
+      onComplete();
+    }, 700);
+  };
+
+  // Allow comfortable wheel / scroll / key / touch to enter
+  useEffect(() => {
+    if (phase !== 'logo' || !logoReady) return;
+
+    const handleUserGesture = (e: Event) => {
+      e.preventDefault();
+      handleEnterExperience();
+    };
+
+    window.addEventListener('wheel', handleUserGesture, { passive: false });
+    window.addEventListener('touchstart', handleUserGesture, { passive: false });
+    window.addEventListener('keydown', handleUserGesture);
+
+    // Also auto-advance after generous 5.5s dwell time if completely unattended
+    const autoAdvanceTimer = setTimeout(() => {
+      handleEnterExperience();
+    }, 5500);
+
+    return () => {
+      window.removeEventListener('wheel', handleUserGesture);
+      window.removeEventListener('touchstart', handleUserGesture);
+      window.removeEventListener('keydown', handleUserGesture);
+      clearTimeout(autoAdvanceTimer);
+    };
+  }, [phase, logoReady]);
 
   if (phase === 'done') return null;
 
@@ -66,6 +102,7 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
       className={`fixed inset-0 z-[1000] flex flex-col items-center justify-center bg-[#0B0B0B] text-[#F1EEE7] transition-all duration-700 select-none ${
         isFlythrough ? 'opacity-0 scale-150 pointer-events-none' : 'opacity-100'
       }`}
+      onClick={phase === 'logo' ? handleEnterExperience : undefined}
     >
       {/* Background drafting grid */}
       <div className="absolute inset-0 drafting-grid opacity-30 pointer-events-none" />
@@ -158,38 +195,49 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
           </svg>
         )}
 
-        {/* Logo Reveal Phase: M/Y MODHAUS */}
+        {/* Logo Reveal Phase: M/Y MODHAUS with confident hold */}
         {isLogo && (
-          <div className="flex flex-col items-center justify-center text-center animate-in fade-in zoom-in-95 duration-500">
+          <div className="flex flex-col items-center justify-center text-center animate-in fade-in zoom-in-95 duration-700 cursor-pointer">
             <div className="font-display font-black text-6xl sm:text-7xl tracking-tighter text-[#F1EEE7] mb-2 flex items-center">
               <span>M</span>
               <span className="text-[#E89D42] mx-1">/</span>
               <span>Y</span>
             </div>
-            <div className="font-display font-bold text-2xl sm:text-3xl tracking-[0.3em] text-[#F1EEE7]">
-              MODHAUS
-            </div>
-            <div className="mt-3 text-[10px] sm:text-[11px] font-mono-tech tracking-[0.25em] text-[#AAA7A0] uppercase">
-              REAL ESTATE / CONSTRUCTION / INTERIORS / MANAGEMENT
+
+            <div className={`transition-all duration-700 ${logoReady ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
+              <div className="font-display font-bold text-2xl sm:text-3xl tracking-[0.3em] text-[#F1EEE7]">
+                MODHAUS
+              </div>
+              <div className="mt-3 text-[10px] sm:text-[11px] font-mono-tech tracking-[0.25em] text-[#AAA7A0] uppercase">
+                REAL ESTATE / CONSTRUCTION / INTERIORS / MANAGEMENT
+              </div>
+
+              {/* Serene, confident entry prompt */}
+              <div className="mt-8 inline-flex items-center gap-2 px-5 py-2 rounded-full border border-white/20 bg-white/5 hover:border-[#E89D42] hover:bg-[#E89D42]/10 transition-all font-mono-tech text-[10px] tracking-widest text-[#F1EEE7] animate-pulse">
+                <span>SCROLL OR CLICK TO ENTER</span>
+                <ArrowDown size={12} className="text-[#E89D42]" />
+              </div>
             </div>
           </div>
         )}
       </div>
 
       {/* Bottom Technical HUD */}
-      <div className="absolute bottom-8 left-8 right-8 flex items-end justify-between font-mono-tech text-xs tracking-widest text-[#AAA7A0]">
-        <div>
-          <div className="text-[10px] text-[#E89D42] mb-1">ARCHITECTURE TIMELINE</div>
-          <div className="text-[#F1EEE7] font-semibold">{stageName}</div>
-        </div>
+      {!isLogo && (
+        <div className="absolute bottom-8 left-8 right-8 flex items-end justify-between font-mono-tech text-xs tracking-widest text-[#AAA7A0]">
+          <div>
+            <div className="text-[10px] text-[#E89D42] mb-1">ARCHITECTURE TIMELINE</div>
+            <div className="text-[#F1EEE7] font-semibold">{stageName}</div>
+          </div>
 
-        <div className="text-right">
-          <div className="text-[10px] text-[#AAA7A0] mb-1">STATUS</div>
-          <div className="text-xl font-bold font-display text-[#F1EEE7]">
-            {progress} <span className="text-[#E89D42] text-sm">%</span>
+          <div className="text-right">
+            <div className="text-[10px] text-[#AAA7A0] mb-1">STATUS</div>
+            <div className="text-xl font-bold font-display text-[#F1EEE7]">
+              {progress} <span className="text-[#E89D42] text-sm">%</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

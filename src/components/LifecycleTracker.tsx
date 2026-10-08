@@ -9,13 +9,13 @@ export interface StageInfo {
 }
 
 export const STAGES: StageInfo[] = [
-  { id: 'land', number: '01', name: 'LAND', progressRange: [0.0, 0.14] },
-  { id: 'plan', number: '02', name: 'PLAN', progressRange: [0.14, 0.28] },
-  { id: 'foundation', number: '03', name: 'FOUNDATION', progressRange: [0.28, 0.42] },
-  { id: 'structure', number: '04', name: 'STRUCTURE', progressRange: [0.42, 0.58] },
-  { id: 'exterior', number: '05', name: 'EXTERIOR', progressRange: [0.58, 0.72] },
-  { id: 'interiors', number: '06', name: 'INTERIORS', progressRange: [0.72, 0.88] },
-  { id: 'handover', number: '07', name: 'HANDOVER', progressRange: [0.88, 1.0] },
+  { id: 'land', number: '01', name: 'LAND', progressRange: [0.0, 0.34] },
+  { id: 'plan', number: '02', name: 'PLAN', progressRange: [0.34, 0.74] },
+  { id: 'foundation', number: '03', name: 'FOUNDATION', progressRange: [0.74, 0.81] },
+  { id: 'structure', number: '04', name: 'STRUCTURE', progressRange: [0.81, 0.87] },
+  { id: 'exterior', number: '05', name: 'EXTERIOR', progressRange: [0.87, 0.92] },
+  { id: 'interiors', number: '06', name: 'INTERIORS', progressRange: [0.92, 0.98] },
+  { id: 'handover', number: '07', name: 'HANDOVER', progressRange: [0.98, 1.0] },
 ];
 
 interface LifecycleTrackerProps {

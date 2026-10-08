@@ -17,7 +17,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onStartProject, currentStageName
 
     const handleScroll = () => {
       const scrollY = window.scrollY;
-      setScrolled(scrollY > 80);
+      // Gently reveal navigation only after visitor has read the hero statement
+      const threshold = window.innerHeight * 1.2;
+      setScrolled(scrollY > threshold);
       setIsScrolling(true);
 
       clearTimeout(timeout);
