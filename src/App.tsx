@@ -12,6 +12,7 @@ import { PropertyTypesSection } from './components/PropertyTypesSection';
 import { PortfolioSection } from './components/PortfolioSection';
 import { CompanyPhilosophy } from './components/CompanyPhilosophy';
 import { ProjectIntakeFooter } from './components/ProjectIntakeFooter';
+import { usePerformanceTier } from './utils/performance';
 import { sound } from './utils/audio';
 
 export function App() {
@@ -19,30 +20,37 @@ export function App() {
   const [timelineProgress, setTimelineProgress] = useState(0);
   const lenisRef = useRef<Lenis | null>(null);
 
-  // Initialize Lenis smooth scroll
+  // Dynamic cross-device 3-tier performance monitor
+  const perfConfig = usePerformanceTier();
+
+  // Initialize Lenis smooth scroll: Only active on non-touch desktop to ensure 100% natural touch momentum on mobile
   useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      orientation: 'vertical',
-      gestureOrientation: 'vertical',
-      smoothWheel: true,
-      wheelMultiplier: 1.0,
-      touchMultiplier: 2.0,
-    });
-    lenisRef.current = lenis;
+    const isTouch = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 
-    function raf(time: number) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
+    if (!isTouch && !perfConfig.prefersReducedMotion) {
+      const lenis = new Lenis({
+        duration: 1.1,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        orientation: 'vertical',
+        gestureOrientation: 'vertical',
+        smoothWheel: true,
+        wheelMultiplier: 1.0,
+      });
+      lenisRef.current = lenis;
+
+      function raf(time: number) {
+        lenis.raf(time);
+        requestAnimationFrame(raf);
+      }
+      const rafId = requestAnimationFrame(raf);
+
+      return () => {
+        cancelAnimationFrame(rafId);
+        lenis.destroy();
+        lenisRef.current = null;
+      };
     }
-    const rafId = requestAnimationFrame(raf);
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      lenis.destroy();
-    };
-  }, []);
+  }, [perfConfig.prefersReducedMotion]);
 
   // Determine current active stage name for nav badge
   const activeStage = STAGES.find(
@@ -70,7 +78,7 @@ export function App() {
     sound.playStructuralRumble();
     if (lenisRef.current) {
       lenisRef.current.scrollTo(0, {
-        duration: 3.2,
+        duration: 3.0,
         easing: (t) => t * t, // Accelerates backward
       });
     } else {
@@ -83,7 +91,7 @@ export function App() {
     const formEl = document.getElementById('section-contact');
     if (formEl) {
       if (lenisRef.current) {
-        lenisRef.current.scrollTo(formEl, { duration: 1.8 });
+        lenisRef.current.scrollTo(formEl, { duration: 1.6 });
       } else {
         formEl.scrollIntoView({ behavior: 'smooth' });
       }
@@ -97,11 +105,11 @@ export function App() {
         <Preloader onComplete={() => setIsPreloaderDone(true)} />
       )}
 
-      {/* 2. Custom Cursor */}
-      <CustomCursor mode="default" />
+      {/* 2. Custom Cursor (only on non-touch desktop) */}
+      {!perfConfig.isTouch && <CustomCursor mode="default" />}
 
-      {/* 3. Global Film Grain Texture */}
-      <div className="film-grain" />
+      {/* 3. Global Film Grain Texture (disabled in lightweight mode for GPU efficiency) */}
+      {perfConfig.tier !== 'lightweight' && <div className="film-grain" />}
 
       {/* 4. Minimal Architectural Navbar */}
       <Navbar
@@ -109,18 +117,19 @@ export function App() {
         currentStageName={stageDisplayName}
       />
 
-      {/* 5. Right-Hand Project Lifecycle Stage Tracker */}
+      {/* 5. Right-Hand Project Lifecycle Stage Tracker (hidden on mobile, visible on tablet/desktop) */}
       <LifecycleTracker
         currentProgress={timelineProgress}
         onSelectStage={handleSelectStage}
-        isVisible={timelineProgress > 0.01 && timelineProgress < 0.99}
+        isVisible={timelineProgress > 0.01 && timelineProgress < 0.99 && !perfConfig.isMobile}
       />
 
-      {/* 6. Act 1: The Core Construction Journey (Continuous Cinematic Scroll Film) */}
+      {/* 6. Act 1: The Core Construction Journey */}
       <main>
         <ConstructionTimeline
           onProgressUpdate={(p) => setTimelineProgress(p)}
           onTimelineComplete={() => {}}
+          perfConfig={perfConfig}
         />
 
         {/* 7. Bridge: The Handover & Laser Divider */}
