@@ -108,8 +108,8 @@ export function App() {
       {/* 2. Custom Cursor (only on non-touch desktop) */}
       {!perfConfig.isTouch && <CustomCursor mode="default" />}
 
-      {/* 3. Global Film Grain Texture (disabled in lightweight mode for GPU efficiency) */}
-      {perfConfig.tier !== 'lightweight' && <div className="film-grain" />}
+      {/* 3. Global Film Grain Texture (disabled on mobile and lightweight mode for GPU efficiency) */}
+      {!perfConfig.isMobile && perfConfig.tier !== 'lightweight' && <div className="film-grain" />}
 
       {/* 4. Minimal Architectural Navbar */}
       <Navbar

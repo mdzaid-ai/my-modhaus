@@ -42,12 +42,21 @@ export const ConstructionTimeline: React.FC<ConstructionTimelineProps> = ({
     const pin = pinRef.current;
     if (!container || !pin) return;
 
+    // Prevent mobile Safari/Chrome address bar height changes from tearing ScrollTrigger
+    ScrollTrigger.config({
+      ignoreMobileResize: true,
+      autoRefreshEvents: 'visibilitychange,DOMContentLoaded,load',
+    });
+
     const trigger = ScrollTrigger.create({
       trigger: container,
       start: 'top top',
       end: 'bottom bottom',
       pin: pin,
-      scrub: perfConfig.isMobile ? 0.35 : 0.5, // Ultra-responsive on mobile
+      scrub: perfConfig.isMobile ? 0.1 : 0.4, // Instant 1:1 response on mobile for zero swipe lag
+      anticipatePin: 1,
+      fastScrollEnd: true,
+      preventOverlaps: true,
       onUpdate: (self) => {
         const p = self.progress;
         setScrollProgress(p);
@@ -167,11 +176,12 @@ export const ConstructionTimeline: React.FC<ConstructionTimelineProps> = ({
         <div className="absolute inset-0 w-full h-full pointer-events-none">
           {/* 1. Hero Empty Land */}
           <div
-            className="absolute inset-0 bg-cover bg-center transition-opacity duration-500 will-change-transform"
+            className="absolute inset-0 bg-cover bg-center transition-opacity duration-300 will-change-transform"
             style={{
               backgroundImage: `url('/assets/images/hero_empty_land.jpg')`,
               opacity: landOpacity,
-              transform: `scale(${1 + scrollProgress * 0.08})`,
+              visibility: landOpacity > 0.005 ? 'visible' : 'hidden',
+              transform: `scale(${1 + scrollProgress * 0.08}) translate3d(0,0,0)`,
             }}
           />
 
@@ -181,7 +191,8 @@ export const ConstructionTimeline: React.FC<ConstructionTimelineProps> = ({
             style={{
               backgroundImage: `url('/assets/images/construction_excavation.jpg')`,
               opacity: excavationOpacity,
-              transform: `scale(${1 + pExcavation * 0.06})`,
+              visibility: excavationOpacity > 0.005 ? 'visible' : 'hidden',
+              transform: `scale(${1 + pExcavation * 0.06}) translate3d(0,0,0)`,
             }}
           />
 
@@ -191,7 +202,8 @@ export const ConstructionTimeline: React.FC<ConstructionTimelineProps> = ({
             style={{
               backgroundImage: `url('/assets/images/construction_structure.jpg')`,
               opacity: structureOpacity,
-              transform: `scale(${1 + pStructureFloors * 0.05})`,
+              visibility: structureOpacity > 0.005 ? 'visible' : 'hidden',
+              transform: `scale(${1 + pStructureFloors * 0.05}) translate3d(0,0,0)`,
             }}
           />
 
@@ -201,7 +213,8 @@ export const ConstructionTimeline: React.FC<ConstructionTimelineProps> = ({
             style={{
               backgroundImage: `url('/assets/images/villa_raw_interior.jpg')`,
               opacity: rawInteriorOpacity,
-              transform: `scale(${1 + pRawInterior * 0.04})`,
+              visibility: rawInteriorOpacity > 0.005 ? 'visible' : 'hidden',
+              transform: `scale(${1 + pRawInterior * 0.04}) translate3d(0,0,0)`,
             }}
           />
 
@@ -211,7 +224,8 @@ export const ConstructionTimeline: React.FC<ConstructionTimelineProps> = ({
             style={{
               backgroundImage: `url('/assets/images/villa_finished_interior.jpg')`,
               opacity: finishedInteriorOpacity,
-              transform: `scale(${1.04 - pFurnishing * 0.04})`,
+              visibility: finishedInteriorOpacity > 0.005 ? 'visible' : 'hidden',
+              transform: `scale(${1.04 - pFurnishing * 0.04}) translate3d(0,0,0)`,
             }}
           />
 
@@ -221,7 +235,8 @@ export const ConstructionTimeline: React.FC<ConstructionTimelineProps> = ({
             style={{
               backgroundImage: `url('/assets/images/villa_final_exterior.jpg')`,
               opacity: finalExteriorOpacity,
-              transform: `scale(${1 + (scrollProgress - 0.97) * 0.08})`,
+              visibility: finalExteriorOpacity > 0.005 ? 'visible' : 'hidden',
+              transform: `scale(${1 + (scrollProgress - 0.97) * 0.08}) translate3d(0,0,0)`,
             }}
           />
 
@@ -247,7 +262,7 @@ export const ConstructionTimeline: React.FC<ConstructionTimelineProps> = ({
               backgroundColor: 'rgba(10, 25, 38, 0.90)',
             }}
           >
-            <div className="relative w-full max-w-5xl aspect-[16/9] border border-[#00E5FF]/40 rounded-lg p-3 sm:p-6 drafting-grid-blueprint shadow-2xl backdrop-blur-md">
+            <div className="relative w-full max-w-5xl aspect-[16/9] border border-[#00E5FF]/40 rounded-lg p-3 sm:p-6 drafting-grid-blueprint shadow-2xl bg-[#0A1926]/95 md:backdrop-blur-md">
               <svg className="w-full h-full" viewBox="0 0 1000 560" fill="none">
                 <rect x="740" y="420" width="240" height="120" stroke="#00E5FF" strokeWidth="1" />
                 <text x="755" y="445" fill="#00E5FF" fontSize="12" fontFamily="monospace">
@@ -398,7 +413,7 @@ export const ConstructionTimeline: React.FC<ConstructionTimelineProps> = ({
             style={getReadingZoneStyle(0.22, 0.27, 0.32, 0.35)}
           >
             <div className="flex justify-between items-start pt-2 sm:pt-6">
-              <div className="inline-flex items-center gap-2 bg-[#0B0B0B]/90 border border-[#00E5FF]/40 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full backdrop-blur-md">
+              <div className="inline-flex items-center gap-2 bg-[#0B0B0B]/95 border border-[#00E5FF]/40 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full md:backdrop-blur-md">
                 <Compass size={13} className="text-[#00E5FF] animate-spin" />
                 <span className="font-mono-tech text-[10px] sm:text-xs tracking-wider text-[#00E5FF]">
                   NORTH-EAST ORIENTATION — SOLAR RECEPTIVE
@@ -409,7 +424,7 @@ export const ConstructionTimeline: React.FC<ConstructionTimelineProps> = ({
               </div>
             </div>
 
-            <div className="max-w-2xl bg-[#0B0B0B]/90 p-5 sm:p-8 md:p-10 rounded-2xl border border-white/15 backdrop-blur-xl shadow-2xl">
+            <div className="max-w-2xl bg-[#0B0B0B]/95 p-5 sm:p-8 md:p-10 rounded-2xl border border-white/15 md:backdrop-blur-xl shadow-2xl">
               <div className="font-mono-tech text-[10px] sm:text-xs tracking-widest text-[#E89D42] mb-2 uppercase">
                 SITE METRICS
               </div>
@@ -446,7 +461,7 @@ export const ConstructionTimeline: React.FC<ConstructionTimelineProps> = ({
             className="absolute inset-0 flex items-center justify-center p-4 sm:p-6 transition-all duration-300"
             style={getReadingZoneStyle(0.35, 0.38, 0.44, 0.47)}
           >
-            <div className="w-full max-w-xl bg-[#0B0B0B]/95 border border-[#E89D42]/40 rounded-2xl sm:rounded-3xl p-5 sm:p-8 backdrop-blur-2xl shadow-2xl">
+            <div className="w-full max-w-xl bg-[#0B0B0B]/95 border border-[#E89D42]/40 rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:backdrop-blur-2xl shadow-2xl">
               <div className="flex items-center justify-between pb-4 sm:pb-6 border-b border-white/10">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="w-2.5 h-2.5 rounded-full bg-[#E89D42] animate-pulse" />
@@ -610,7 +625,7 @@ export const ConstructionTimeline: React.FC<ConstructionTimelineProps> = ({
               </div>
             </div>
 
-            <div className="max-w-2xl bg-black/85 p-5 sm:p-6 rounded-2xl border border-white/10 backdrop-blur-md">
+            <div className="max-w-2xl bg-black/92 p-5 sm:p-6 rounded-2xl border border-white/10 md:backdrop-blur-md">
               <h2 className="font-display font-black text-4xl sm:text-5xl md:text-6xl text-[#F1EEE7] uppercase leading-none mb-2 sm:mb-3">
                 BREAKING GROUND.
               </h2>
@@ -699,12 +714,12 @@ export const ConstructionTimeline: React.FC<ConstructionTimelineProps> = ({
             style={getReadingZoneStyle(0.94, 0.95, 0.97, 0.98)}
           >
             <div className="flex justify-between items-center">
-              <div className="inline-flex items-center gap-1.5 sm:gap-2 bg-black/90 border border-[#E89D42]/60 px-3 sm:px-4 py-1.5 rounded-full font-mono-tech text-[10px] sm:text-xs text-[#E89D42] backdrop-blur-md">
+              <div className="inline-flex items-center gap-1.5 sm:gap-2 bg-black/95 border border-[#E89D42]/60 px-3 sm:px-4 py-1.5 rounded-full font-mono-tech text-[10px] sm:text-xs text-[#E89D42] md:backdrop-blur-md">
                 <Sparkles size={13} />
                 <span>INTERIOR // 3000K WARM LIGHTING</span>
               </div>
 
-              <div className="hidden sm:flex items-center gap-1.5 bg-black/80 p-1 rounded-full border border-white/10 backdrop-blur-md font-mono-tech text-xs">
+              <div className="hidden sm:flex items-center gap-1.5 bg-black/90 p-1 rounded-full border border-white/10 md:backdrop-blur-md font-mono-tech text-xs">
                 {(['living', 'kitchen', 'master', 'terrace'] as const).map((room) => (
                   <button
                     key={room}
@@ -724,7 +739,7 @@ export const ConstructionTimeline: React.FC<ConstructionTimelineProps> = ({
               </div>
             </div>
 
-            <div className="max-w-2xl bg-[#0B0B0B]/90 p-5 sm:p-8 rounded-2xl border border-white/15 backdrop-blur-xl">
+            <div className="max-w-2xl bg-[#0B0B0B]/95 p-5 sm:p-8 rounded-2xl border border-white/15 md:backdrop-blur-xl">
               <div className="font-mono-tech text-[10px] sm:text-xs text-[#E89D42] mb-1 sm:mb-2 uppercase">
                 SCENE 18 // FURNISHING
               </div>

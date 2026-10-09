@@ -45,8 +45,8 @@ export const ArchitecturalCanvas: React.FC<ArchitecturalCanvasProps> = ({ progre
     // Renderer setup with strictly capped DPR and power preference
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
-      antialias: perfConfig.tier !== 'lightweight',
-      powerPreference: perfConfig.isMobile ? 'default' : 'high-performance',
+      antialias: !perfConfig.isMobile && perfConfig.tier !== 'lightweight',
+      powerPreference: 'high-performance',
       precision: perfConfig.isMobile ? 'mediump' : 'highp',
     });
     renderer.setSize(width, height);
@@ -68,16 +68,18 @@ export const ArchitecturalCanvas: React.FC<ArchitecturalCanvasProps> = ({ progre
     container.appendChild(renderer.domElement);
 
     // --- Lighting ---
-    const ambientLight = new THREE.AmbientLight(0xf1eee7, 0.55);
+    const ambientLight = new THREE.AmbientLight(0xf1eee7, perfConfig.isMobile ? 0.8 : 0.55);
     scene.add(ambientLight);
 
     const sunLight = new THREE.DirectionalLight(0xe89d42, 1.5);
     sunLight.position.set(12, 18, 10);
     scene.add(sunLight);
 
-    const warmFill = new THREE.PointLight(0xd4af37, 1.6, 20);
-    warmFill.position.set(0, 3, 2);
-    scene.add(warmFill);
+    if (!perfConfig.isMobile) {
+      const warmFill = new THREE.PointLight(0xd4af37, 1.6, 20);
+      warmFill.position.set(0, 3, 2);
+      scene.add(warmFill);
+    }
 
     // --- 1. Terrain Grid & Plot Boundary ---
     const gridDivisions = perfConfig.isMobile ? 16 : 28;
@@ -408,7 +410,7 @@ export const ArchitecturalCanvas: React.FC<ArchitecturalCanvasProps> = ({ progre
     <div
       ref={mountRef}
       className="absolute inset-0 w-full h-full pointer-events-none z-10"
-      style={{ mixBlendMode: 'screen' }}
+      style={perfConfig.isMobile ? undefined : { mixBlendMode: 'screen' }}
     />
   );
 };

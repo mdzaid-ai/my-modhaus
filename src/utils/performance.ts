@@ -35,11 +35,11 @@ export function detectInitialTier(): PerformanceConfig {
 
   // Strict DPR caps to prevent GPU melt on 3x-4x mobile OLED displays
   const rawDpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
-  const dpr = isMobile ? Math.min(rawDpr, 1.2) : tier === 'high' ? Math.min(rawDpr, 1.75) : Math.min(rawDpr, 1.25);
+  const dpr = isMobile ? Math.min(rawDpr, 1.0) : tier === 'high' ? Math.min(rawDpr, 1.75) : Math.min(rawDpr, 1.25);
 
-  const particleCount = tier === 'high' ? 1000 : tier === 'standard' ? 320 : 60;
-  // Shorter, natural swipe distance on mobile (1100vh vs 2100vh on desktop)
-  const scrollTrackVh = isMobile ? 1100 : 2100;
+  const particleCount = isMobile ? 40 : tier === 'high' ? 1000 : tier === 'standard' ? 320 : 60;
+  // Natural swipe distance on mobile (700vh vs 2000vh on desktop) - satisfies 400-700vh mobile rule
+  const scrollTrackVh = isMobile ? 700 : 2000;
 
   return {
     tier,
@@ -49,8 +49,8 @@ export function detectInitialTier(): PerformanceConfig {
     isTouch,
     prefersReducedMotion,
     scrollTrackVh,
-    enableShadows: tier === 'high',
-    enableComplex3D: tier !== 'lightweight',
+    enableShadows: !isMobile && tier === 'high',
+    enableComplex3D: !isMobile || tier !== 'lightweight',
   };
 }
 
@@ -117,8 +117,8 @@ export function usePerformanceTier(): PerformanceConfig {
       setConfig((prev) => ({
         ...prev,
         isMobile,
-        scrollTrackVh: isMobile ? 1100 : 2100,
-        dpr: isMobile ? Math.min(window.devicePixelRatio, 1.2) : prev.dpr,
+        scrollTrackVh: isMobile ? 700 : 2000,
+        dpr: isMobile ? Math.min(window.devicePixelRatio, 1.0) : prev.dpr,
       }));
     };
 

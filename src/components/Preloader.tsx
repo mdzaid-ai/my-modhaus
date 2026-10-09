@@ -69,13 +69,12 @@ export const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
   useEffect(() => {
     if (phase !== 'logo' || !logoReady) return;
 
-    const handleUserGesture = (e: Event) => {
-      e.preventDefault();
+    const handleUserGesture = () => {
       handleEnterExperience();
     };
 
-    window.addEventListener('wheel', handleUserGesture, { passive: false });
-    window.addEventListener('touchstart', handleUserGesture, { passive: false });
+    window.addEventListener('wheel', handleUserGesture, { passive: true });
+    window.addEventListener('touchstart', handleUserGesture, { passive: true });
     window.addEventListener('keydown', handleUserGesture);
 
     // Also auto-advance after generous 5.5s dwell time if completely unattended
